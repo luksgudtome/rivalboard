@@ -18,12 +18,11 @@ const participantSchema = z.union([
       name: z.string().optional().default(""),
       socialUrl: z.string().trim().url("Individual social link must be a valid URL.").nullable().optional(),
       jerseyNumber: z.string().trim().max(20, "Individual jersey number is too long.").nullable().optional(),
-      profilePhotoUrl: z.string().trim().url("Profile photo URL must be a valid URL.").nullable().optional(),
     }),
     z.object({
       type: z.literal("team"),
       name: z.string().optional().default(""),
-      logoUrl: z.string().trim().url("Team logo URL must be a valid URL.").nullable().optional(),
+      socialUrl: z.string().trim().url("Team social link must be a valid URL.").nullable().optional(),
       players: z.array(playerSchema).optional().default([]),
     }),
   ]),

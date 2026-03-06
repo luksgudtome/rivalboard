@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import html2canvas from "html2canvas";
-import { ChevronDown, CircleUserRound, Ellipsis, LogOut, Save, Share2, Trash2, User } from "lucide-react";
+import { ArrowRight, ChevronDown, CircleUserRound, Ellipsis, Info, LogOut, Save, Share2, Trash2, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -15,6 +15,7 @@ import type {
   TournamentSnapshot,
   ViewerMatch,
   ViewerMatchGame,
+  ViewerParticipant,
   ViewerParticipantPlayer,
 } from "@/lib/contracts";
 
@@ -334,8 +335,6 @@ interface PublicMatchModalProps {
   activeGameNumber: number;
   totalScore1: number;
   totalScore2: number;
-  p1ImageUrl?: string;
-  p2ImageUrl?: string;
   p1Detail?: string;
   p2Detail?: string;
   p1IsTeam: boolean;
@@ -352,6 +351,164 @@ interface TeamPlayersModalProps {
   teamName: string;
   players: ViewerParticipantPlayer[];
   onClose: () => void;
+}
+
+interface TournamentInfoModalProps {
+  tournamentName: string;
+  managerName?: string;
+  gameType: string;
+  participants: ViewerParticipant[];
+  onClose: () => void;
+}
+
+function formatGameTypeLabel(value: string): string {
+  return value.replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function TournamentInfoModal({ tournamentName, managerName, gameType, participants, onClose }: TournamentInfoModalProps) {
+  const managerLabel = managerName?.trim() ? managerName.trim() : "Unknown organizer";
+  const [expandedTeamIds, setExpandedTeamIds] = useState<number[]>([]);
+
+  function toggleTeam(teamId: number) {
+    setExpandedTeamIds((current) => (current.includes(teamId) ? current.filter((id) => id !== teamId) : [...current, teamId]));
+  }
+
+  return (
+    <div className="modal-root" role="dialog" aria-modal="true" aria-labelledby="tournament-info-modal-title">
+      <button type="button" className="modal-backdrop" onClick={onClose} aria-label="Close tournament info" />
+      <div className="modal-card modal-card-info">
+        <div className="modal-head">
+          <h3 id="tournament-info-modal-title">Tournament Info</h3>
+          <button type="button" className="icon-btn" onClick={onClose}>
+            x
+          </button>
+        </div>
+
+        <p className="modal-subtitle tournament-info-title">{tournamentName}</p>
+
+        <div className="tournament-info-grid">
+          <article className="tournament-info-item">
+            <small>Managed By</small>
+            <strong>{managerLabel}</strong>
+          </article>
+          <article className="tournament-info-item">
+            <small>Sport Type</small>
+            <strong>{formatGameTypeLabel(gameType)}</strong>
+          </article>
+        </div>
+
+        <section className="tournament-info-participants">
+          <div className="participant-block-head">
+            <strong>Participants</strong>
+            <small className="muted">{participants.length} total</small>
+          </div>
+
+          {participants.length === 0 ? (
+            <p className="muted">No participants listed.</p>
+          ) : (
+            <ol className="tournament-info-list">
+              {participants.map((participant, index) => {
+                const isTeam = participant.participantType === "team";
+                const teamPlayers = isTeam ? participant.players ?? [] : [];
+                const playerCount = teamPlayers.length;
+                const playersLabel = `${playerCount} player${playerCount === 1 ? "" : "s"}`;
+                const isExpanded = isTeam && expandedTeamIds.includes(participant.id);
+                const participantLabel = `${index + 1}. ${participant.name}`;
+                const playerList = (
+                  <ul
+                    id={`team-${participant.id}-players`}
+                    className="tournament-info-player-list"
+                    aria-label={`${participant.name} players`}
+                  >
+                    {teamPlayers.map((player, playerIndex) => (
+                      <li key={`${participant.id}-${player.name}-${playerIndex}`} className="tournament-info-player-item">
+                        {player.socialUrl ? (
+                          <a
+                            href={player.socialUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="tournament-info-player-link"
+                            aria-label={`Open ${player.name} social link`}
+                          >
+                            {player.name}
+                          </a>
+                        ) : (
+                          <span>{player.name}</span>
+                        )}
+                        {player.jerseyNumber ? <small>#{player.jerseyNumber}</small> : null}
+                      </li>
+                    ))}
+                  </ul>
+                );
+                return (
+                  <li key={participant.id} className="tournament-info-list-item">
+                    <div>
+                      {isTeam ? (
+                        <>
+                          <div className="tournament-info-team-row">
+                            <strong>
+                              {participant.socialUrl ? (
+                                <a
+                                  href={participant.socialUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="tournament-info-link"
+                                  aria-label={`Open ${participant.name} social link`}
+                                >
+                                  {participantLabel}
+                                </a>
+                              ) : (
+                                participantLabel
+                              )}
+                            </strong>
+                            <span className="tournament-info-team-separator" aria-hidden="true">
+                              |
+                            </span>
+                            {playerCount > 0 ? (
+                              <button
+                                type="button"
+                                className="tournament-info-accordion-toggle"
+                                onClick={() => toggleTeam(participant.id)}
+                                aria-expanded={isExpanded}
+                                aria-controls={`team-${participant.id}-players`}
+                              >
+                                {playersLabel}
+                              </button>
+                            ) : (
+                              <small>{playersLabel}</small>
+                            )}
+                          </div>
+                          {isExpanded && playerList}
+                        </>
+                      ) : (
+                        <>
+                          <strong>
+                            {participant.socialUrl ? (
+                              <a
+                                href={participant.socialUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="tournament-info-link"
+                                aria-label={`Open ${participant.name} social link`}
+                              >
+                                {participantLabel}
+                              </a>
+                            ) : (
+                              participantLabel
+                            )}
+                          </strong>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+        </section>
+      </div>
+    </div>
+  );
 }
 
 function TeamPlayersModal({ teamName, players, onClose }: TeamPlayersModalProps) {
@@ -411,8 +568,6 @@ function PublicMatchModal({
   activeGameNumber,
   totalScore1,
   totalScore2,
-  p1ImageUrl,
-  p2ImageUrl,
   p1Detail,
   p2Detail,
   p1IsTeam,
@@ -431,6 +586,16 @@ function PublicMatchModal({
   const embedUrl = youtubeEmbedUrl(activeGame?.youtubeUrl);
   const gameScore1 = activeGame?.score1.trim() ? activeGame.score1.trim() : "-";
   const gameScore2 = activeGame?.score2.trim() ? activeGame.score2.trim() : "-";
+  const p1Avatar = (
+    <span className="public-team-avatar public-team-avatar-fallback" aria-hidden="true">
+      {initials(names.p1)}
+    </span>
+  );
+  const p2Avatar = (
+    <span className="public-team-avatar public-team-avatar-fallback" aria-hidden="true">
+      {initials(names.p2)}
+    </span>
+  );
   const winnerName =
     match.opponent1?.result === "win"
       ? names.p1
@@ -457,22 +622,18 @@ function PublicMatchModal({
 
         <div className="public-matchup">
           <div className="public-team">
-            {!p1IsTeam && p1SocialUrl ? (
-              <a href={p1SocialUrl} target="_blank" rel="noopener noreferrer" className="public-team-avatar-link" aria-label={`Open ${names.p1} profile`}>
-                {p1ImageUrl ? (
-                  <img src={p1ImageUrl} alt={`${names.p1} profile`} className="public-team-avatar" />
-                ) : (
-                  <span className="public-team-avatar public-team-avatar-fallback" aria-hidden="true">
-                    {names.p1.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
+            {p1SocialUrl ? (
+              <a
+                href={p1SocialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="public-team-avatar-link"
+                aria-label={`Open ${names.p1} social link`}
+              >
+                {p1Avatar}
               </a>
-            ) : p1ImageUrl ? (
-              <img src={p1ImageUrl} alt={`${names.p1} logo`} className="public-team-avatar" />
             ) : (
-              <span className="public-team-avatar public-team-avatar-fallback" aria-hidden="true">
-                {names.p1.slice(0, 1).toUpperCase()}
-              </span>
+              p1Avatar
             )}
             <div className="public-team-meta">
               <strong>{names.p1}</strong>
@@ -507,22 +668,18 @@ function PublicMatchModal({
                 p2Detail && <small>{p2Detail}</small>
               )}
             </div>
-            {!p2IsTeam && p2SocialUrl ? (
-              <a href={p2SocialUrl} target="_blank" rel="noopener noreferrer" className="public-team-avatar-link" aria-label={`Open ${names.p2} profile`}>
-                {p2ImageUrl ? (
-                  <img src={p2ImageUrl} alt={`${names.p2} profile`} className="public-team-avatar" />
-                ) : (
-                  <span className="public-team-avatar public-team-avatar-fallback" aria-hidden="true">
-                    {names.p2.slice(0, 1).toUpperCase()}
-                  </span>
-                )}
+            {p2SocialUrl ? (
+              <a
+                href={p2SocialUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="public-team-avatar-link"
+                aria-label={`Open ${names.p2} social link`}
+              >
+                {p2Avatar}
               </a>
-            ) : p2ImageUrl ? (
-              <img src={p2ImageUrl} alt={`${names.p2} logo`} className="public-team-avatar" />
             ) : (
-              <span className="public-team-avatar public-team-avatar-fallback" aria-hidden="true">
-                {names.p2.slice(0, 1).toUpperCase()}
-              </span>
+              p2Avatar
             )}
           </div>
         </div>
@@ -774,6 +931,7 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeletingTournament, setIsDeletingTournament] = useState(false);
   const [isActionsMenuOpen, setIsActionsMenuOpen] = useState(false);
+  const [isMoreInfoOpen, setIsMoreInfoOpen] = useState(false);
   const [isExportingImage, setIsExportingImage] = useState(false);
   const [isSeedModalOpen, setIsSeedModalOpen] = useState(false);
   const [isLoadingSeedCandidates, setIsLoadingSeedCandidates] = useState(false);
@@ -868,8 +1026,6 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
   const selectedParticipantVisuals = useMemo(() => {
     if (!selectedMatch) {
       return {
-        p1ImageUrl: undefined as string | undefined,
-        p2ImageUrl: undefined as string | undefined,
         p1Detail: undefined as string | undefined,
         p2Detail: undefined as string | undefined,
         p1IsTeam: false,
@@ -898,16 +1054,14 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
     const p2Detail = !p2IsTeam && p2?.jerseyNumber ? `#${p2.jerseyNumber}` : undefined;
 
     return {
-      p1ImageUrl: p1?.profilePhotoUrl ?? p1?.logoUrl ?? undefined,
-      p2ImageUrl: p2?.profilePhotoUrl ?? p2?.logoUrl ?? undefined,
       p1Detail,
       p2Detail,
       p1IsTeam,
       p2IsTeam,
       p1Players,
       p2Players,
-      p1SocialUrl: !p1IsTeam ? p1?.socialUrl ?? undefined : undefined,
-      p2SocialUrl: !p2IsTeam ? p2?.socialUrl ?? undefined : undefined,
+      p1SocialUrl: p1?.socialUrl ?? undefined,
+      p2SocialUrl: p2?.socialUrl ?? undefined,
     };
   }, [participantDetailsById, selectedMatch]);
 
@@ -969,17 +1123,6 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
     snapshot.data.stage,
     tournament.name,
   ]);
-
-  const participantImages = useMemo(
-    () =>
-      snapshot.data.participant
-        .map((participant) => ({
-          participantId: participant.id,
-          imageUrl: participant.profilePhotoUrl ?? participant.logoUrl ?? "",
-        }))
-        .filter((entry) => entry.imageUrl.length > 0),
-    [snapshot.data.participant],
-  );
 
   const openMatchModal = useCallback(
     (matchId: number) => {
@@ -1358,7 +1501,7 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
   useEffect(() => {
     if (!viewerReady || !window.bracketsViewer) return;
 
-    window.bracketsViewer.setParticipantImages?.(participantImages);
+    window.bracketsViewer.setParticipantImages?.([]);
 
     void window.bracketsViewer.render(viewerPayload, {
       clear: true,
@@ -1366,7 +1509,7 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
       onMatchClick: (match: TournamentViewerMatchClickPayload) => openMatchModal(Number(match.id)),
       highlightParticipantOnHover: true,
     });
-  }, [openMatchModal, participantImages, viewerPayload, viewerReady]);
+  }, [openMatchModal, viewerPayload, viewerReady]);
 
   useEffect(() => {
     if (!isActionsMenuOpen) return;
@@ -1389,6 +1532,10 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
         setIsSeedModalOpen(false);
         return;
       }
+      if (isMoreInfoOpen) {
+        setIsMoreInfoOpen(false);
+        return;
+      }
       if (isActionsMenuOpen) {
         setIsActionsMenuOpen(false);
         return;
@@ -1402,10 +1549,11 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [closeModal, isActionsMenuOpen, isDeleteModalOpen, isSeedModalOpen]);
+  }, [closeModal, isActionsMenuOpen, isDeleteModalOpen, isMoreInfoOpen, isSeedModalOpen]);
 
   const canEdit = !readOnly && selectedMatch ? isEditableMatch(selectedMatch) : false;
   const isModalOpen = selectedMatch !== null && selectedNames !== null;
+  const tournamentManagerName = user?.name?.trim() || snapshot.tournament.managerName?.trim() || undefined;
 
   return (
     <main className="dashboard">
@@ -1474,6 +1622,18 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
             </button>
             {isActionsMenuOpen && (
               <div className="user-menu-panel">
+                <button
+                  type="button"
+                  className="user-menu-item"
+                  onClick={() => {
+                    setIsActionsMenuOpen(false);
+                    setIsMoreInfoOpen(true);
+                  }}
+                >
+                  <Info className="user-menu-item-icon" aria-hidden="true" />
+                  More info
+                </button>
+                <div className="user-menu-divider" />
                 <button type="button" className="user-menu-item" onClick={saveTournament} disabled={isExportingImage}>
                   <Save className="user-menu-item-icon" aria-hidden="true" />
                   {isExportingImage ? "Saving..." : "Save"}
@@ -1496,6 +1656,18 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
                 </button>
               </div>
             )}
+          </div>
+        )}
+        {readOnly && (
+          <div className="viewer-actions-menu">
+            <button
+              type="button"
+              className="ghost-btn viewer-more-info-btn"
+              onClick={() => setIsMoreInfoOpen(true)}
+              aria-label="Open tournament info"
+            >
+              More info
+            </button>
           </div>
         )}
         {stages.length > 0 && (
@@ -1531,7 +1703,7 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
                     </button>
                     {index < timelineStages.length - 1 && (
                       <span className="stage-arrow" aria-hidden="true">
-                        {"->"}
+                        <ArrowRight className="stage-arrow-icon" />
                       </span>
                     )}
                   </Fragment>
@@ -1614,8 +1786,6 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
           activeGameNumber={activeGameNumber}
           totalScore1={selectedMatch.opponent1?.score ?? 0}
           totalScore2={selectedMatch.opponent2?.score ?? 0}
-          p1ImageUrl={selectedParticipantVisuals.p1ImageUrl}
-          p2ImageUrl={selectedParticipantVisuals.p2ImageUrl}
           p1Detail={selectedParticipantVisuals.p1Detail}
           p2Detail={selectedParticipantVisuals.p2Detail}
           p1IsTeam={selectedParticipantVisuals.p1IsTeam}
@@ -1626,6 +1796,16 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
           p2SocialUrl={selectedParticipantVisuals.p2SocialUrl}
           onActiveGameNumberChange={setActiveGameNumber}
           onClose={closeModal}
+        />
+      )}
+
+      {isMoreInfoOpen && (
+        <TournamentInfoModal
+          tournamentName={tournament.name}
+          managerName={tournamentManagerName}
+          gameType={tournament.gameType}
+          participants={snapshot.data.participant}
+          onClose={() => setIsMoreInfoOpen(false)}
         />
       )}
     </main>

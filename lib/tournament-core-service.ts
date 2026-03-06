@@ -41,6 +41,7 @@ export interface TournamentSnapshot {
   tournament: {
     id: string;
     name: string;
+    managerName?: string;
     description: string;
     gameType: TournamentGameType;
     format: TournamentFormat;
@@ -483,7 +484,7 @@ function isUnknownIsPublicArgument(error: unknown): boolean {
   return error instanceof Error && error.message.includes("Unknown argument `isPublic`");
 }
 
-function asSnapshot(tournamentRecord: Tournament): TournamentSnapshot {
+function asSnapshot(tournamentRecord: Tournament & { user?: { name: string } | null }): TournamentSnapshot {
   const data = asViewerData(tournamentRecord);
   const meta = getMeta(tournamentRecord);
   const stats = getStats(data);
@@ -492,6 +493,7 @@ function asSnapshot(tournamentRecord: Tournament): TournamentSnapshot {
   const tournament = {
     id: tournamentRecord.id,
     name: tournamentRecord.name,
+    managerName: tournamentRecord.user?.name ?? undefined,
     description: meta.description,
     gameType: meta.gameType,
     format: meta.format,
@@ -807,16 +809,18 @@ export async function getTournamentSnapshotForUser(userId: string, tournamentId:
 }
 
 export async function getTournamentSnapshotPublic(tournamentId: string): Promise<TournamentSnapshot> {
-  let tournament: Tournament | null = null;
+  let tournament: (Tournament & { user?: { name: string } | null }) | null = null;
 
   try {
     tournament = await prisma.tournament.findFirst({
       where: { id: tournamentId, isPublic: true } as any,
+      include: { user: { select: { name: true } } },
     });
   } catch (error) {
     if (!isUnknownIsPublicArgument(error)) throw error;
     tournament = await prisma.tournament.findUnique({
       where: { id: tournamentId },
+      include: { user: { select: { name: true } } },
     });
   }
 

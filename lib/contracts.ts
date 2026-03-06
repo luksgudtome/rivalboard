@@ -96,6 +96,7 @@ export interface TournamentSnapshot {
   tournament: {
     id: string;
     name: string;
+    managerName?: string;
     description: string;
     gameType: TournamentGameType;
     format: TournamentFormat;

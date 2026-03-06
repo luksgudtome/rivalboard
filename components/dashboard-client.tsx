@@ -31,14 +31,13 @@ interface IndividualDraft {
   name: string;
   socialUrl: string;
   jerseyNumber: string;
-  profilePhotoUrl: string;
 }
 
 interface TeamDraft {
   id: string;
   type: "team";
   name: string;
-  logoUrl: string;
+  socialUrl: string;
   players: PlayerDraft[];
 }
 
@@ -68,14 +67,13 @@ function serializeParticipants(participants: ParticipantDraft[]) {
         name: participant.name,
         socialUrl: toOptional(participant.socialUrl),
         jerseyNumber: toOptional(participant.jerseyNumber),
-        profilePhotoUrl: toOptional(participant.profilePhotoUrl),
       };
     }
 
     return {
       type: "team" as const,
       name: participant.name,
-      logoUrl: toOptional(participant.logoUrl),
+      socialUrl: toOptional(participant.socialUrl),
       players: participant.players.map((player) => ({
         name: player.name,
         socialUrl: toOptional(player.socialUrl),
@@ -123,12 +121,11 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
     name: "",
     socialUrl: "",
     jerseyNumber: "",
-    profilePhotoUrl: "",
   });
 
   const [teamForm, setTeamForm] = useState({
     name: "",
-    logoUrl: "",
+    socialUrl: "",
   });
 
   const [playerForm, setPlayerForm] = useState({
@@ -202,8 +199,8 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
     setParticipantMode(nextMode);
     setParticipants([]);
     setSelectedTeamId(null);
-    setIndividualForm({ name: "", socialUrl: "", jerseyNumber: "", profilePhotoUrl: "" });
-    setTeamForm({ name: "", logoUrl: "" });
+    setIndividualForm({ name: "", socialUrl: "", jerseyNumber: "" });
+    setTeamForm({ name: "", socialUrl: "" });
     setPlayerForm({ name: "", socialUrl: "", jerseyNumber: "" });
   }
 
@@ -218,11 +215,10 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
         name: individualForm.name.trim(),
         socialUrl: individualForm.socialUrl.trim(),
         jerseyNumber: individualForm.jerseyNumber.trim(),
-        profilePhotoUrl: individualForm.profilePhotoUrl.trim(),
       },
     ]);
 
-    setIndividualForm({ name: "", socialUrl: "", jerseyNumber: "", profilePhotoUrl: "" });
+    setIndividualForm({ name: "", socialUrl: "", jerseyNumber: "" });
   }
 
   function removeIndividual(individualId: string) {
@@ -238,13 +234,13 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
       id: makeId(),
       type: "team",
       name: teamForm.name.trim(),
-      logoUrl: teamForm.logoUrl.trim(),
+      socialUrl: teamForm.socialUrl.trim(),
       players: [],
     };
 
     setParticipants((current) => [...current, team]);
     setSelectedTeamId(team.id);
-    setTeamForm({ name: "", logoUrl: "" });
+    setTeamForm({ name: "", socialUrl: "" });
   }
 
   function removeTeam(teamId: string) {
@@ -350,8 +346,8 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
       setParticipants([]);
       setSimpleParticipantsText("Apex\nNova\nOrbit\nPulse\nEcho\nVortex");
       setSelectedTeamId(null);
-      setIndividualForm({ name: "", socialUrl: "", jerseyNumber: "", profilePhotoUrl: "" });
-      setTeamForm({ name: "", logoUrl: "" });
+      setIndividualForm({ name: "", socialUrl: "", jerseyNumber: "" });
+      setTeamForm({ name: "", socialUrl: "" });
       setPlayerForm({ name: "", socialUrl: "", jerseyNumber: "" });
 
       router.push(`/tournaments/${tournament.id}`);
@@ -391,10 +387,8 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
               Create
             </button>
             <details className="user-menu">
-              <summary className="user-menu-trigger" aria-label="Account menu" title={user.name}>
-                <span className="user-avatar" aria-hidden="true">
-                  <CircleUserRound className="user-avatar-icon" />
-                </span>
+              <summary className="user-menu-trigger dashboard-user-menu-trigger" aria-label="Account menu" title={user.name}>
+                <CircleUserRound className="user-avatar-icon" aria-hidden="true" />
                 <span className="user-menu-caret" aria-hidden="true">
                   <ChevronDown className="user-menu-caret-icon" />
                 </span>
@@ -712,16 +706,6 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
                           placeholder="https://..."
                         />
                       </label>
-                      <label>
-                        Photo URL
-                        <input
-                          type="url"
-                          inputMode="url"
-                          value={individualForm.profilePhotoUrl}
-                          onChange={(event) => setIndividualForm((current) => ({ ...current, profilePhotoUrl: event.target.value }))}
-                          placeholder="https://..."
-                        />
-                      </label>
                     </div>
 
                     <div className="compact-actions">
@@ -786,12 +770,12 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
                           />
                         </label>
                         <label>
-                          Team Logo URL
+                          Team Social URL
                           <input
                             type="url"
                             inputMode="url"
-                            value={teamForm.logoUrl}
-                            onChange={(event) => setTeamForm((current) => ({ ...current, logoUrl: event.target.value }))}
+                            value={teamForm.socialUrl}
+                            onChange={(event) => setTeamForm((current) => ({ ...current, socialUrl: event.target.value }))}
                             placeholder="https://..."
                           />
                         </label>
@@ -822,7 +806,9 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
                           >
                             <div className="simple-list-main">
                               <strong>{team.name}</strong>
-                              <small>{team.players.length} players</small>
+                              <small>
+                                {team.players.length} players | {team.socialUrl ? "Has social" : "No social"}
+                              </small>
                             </div>
                             <button
                               type="button"
