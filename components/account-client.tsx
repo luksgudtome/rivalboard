@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import RivalboardBrand from "@/components/rivalboard-brand";
 import type { PublicUser } from "@/lib/contracts";
 
 interface AccountClientProps {
@@ -87,12 +88,7 @@ export default function AccountClient({ user }: AccountClientProps) {
     <main className="dashboard">
       <nav className="top-nav">
         <div className="top-nav-inner">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              R
-            </span>
-            <span>Rivalboard</span>
-          </div>
+          <RivalboardBrand />
           <div className="nav-meta">
             <Link href="/dashboard" className="primary-btn as-link">
               Dashboard

@@ -31,7 +31,6 @@ const participantSchema = z.union([
 
 const createSchema = z.object({
   name: z.string().optional().default(""),
-  description: z.string().optional().default(""),
   gameType: z
     .enum(["esports", "basketball", "football", "volleyball", "badminton", "tennis", "chess", "other"])
     .optional(),

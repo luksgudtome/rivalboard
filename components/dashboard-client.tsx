@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronDown, CircleUserRound } from "lucide-react";
+import { ChevronDown, CircleUserRound, LogOut, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import RivalboardBrand from "@/components/rivalboard-brand";
 import type { PublicUser, TournamentFormat, TournamentGameType, TournamentSummary } from "@/lib/contracts";
 
 interface DashboardClientProps {
@@ -110,7 +111,6 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
   const [createStep, setCreateStep] = useState<CreateStep>(0);
 
   const [name, setName] = useState("Weekend Cup");
-  const [description, setDescription] = useState("");
   const [gameType, setGameType] = useState<TournamentGameType>("esports");
   const [format, setFormat] = useState<TournamentFormat>("se");
   const [participantMode, setParticipantMode] = useState<ParticipantMode>("simple");
@@ -312,7 +312,6 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
-          description,
           gameType,
           format,
           participants: participantMode === "simple" ? simpleParticipants : serializeParticipants(participants),
@@ -329,7 +328,7 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
         {
           id: tournament.id,
           name: tournament.name,
-          description: tournament.description ?? "",
+          description: "",
           gameType: tournament.gameType ?? "esports",
           format: tournament.format ?? "se",
           type: tournament.type,
@@ -343,7 +342,6 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
       setIsModalOpen(false);
       setCreateStep(0);
       setName("Weekend Cup");
-      setDescription("");
       setGameType("esports");
       setFormat("se");
       setParticipantMode("simple");
@@ -379,12 +377,7 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
     <main className="dashboard">
       <nav className="top-nav">
         <div className="top-nav-inner">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              R
-            </span>
-            <span>Rivalboard</span>
-          </div>
+          <RivalboardBrand />
           <div className="nav-meta">
             <button
               type="button"
@@ -408,10 +401,12 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
               </summary>
               <div className="user-menu-panel">
                 <Link href="/account" className="user-menu-item">
+                  <User className="user-menu-item-icon" aria-hidden="true" />
                   Account
                 </Link>
                 <div className="user-menu-divider" />
                 <button type="button" className="user-menu-item" onClick={signOut}>
+                  <LogOut className="user-menu-item-icon" aria-hidden="true" />
                   Logout
                 </button>
               </div>
@@ -603,11 +598,6 @@ export default function DashboardClient({ user, initialTournaments }: DashboardC
                   <label>
                     Tournament Name
                     <input value={name} onChange={(event) => setName(event.target.value)} required />
-                  </label>
-
-                  <label>
-                    Description
-                    <textarea rows={3} value={description} onChange={(event) => setDescription(event.target.value)} />
                   </label>
 
                   <label>

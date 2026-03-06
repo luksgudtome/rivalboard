@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import MarkdownRenderer from "@/components/markdown-renderer";
+import RivalboardBrand from "@/components/rivalboard-brand";
 import { getLegalDoc } from "@/lib/legal-docs";
 
 export const metadata: Metadata = {
@@ -15,12 +16,7 @@ export default async function TermsPage() {
     <main className="dashboard legal-main">
       <nav className="top-nav">
         <div className="top-nav-inner">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              R
-            </span>
-            <span>Rivalboard</span>
-          </div>
+          <RivalboardBrand />
           <div className="legal-nav-links">
             <Link href="/privacy" className="as-link legal-nav-link">
               Privacy

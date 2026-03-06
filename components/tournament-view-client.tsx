@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import html2canvas from "html2canvas";
-import { ChevronDown, CircleUserRound, Ellipsis, Save, Share2, Trash2 } from "lucide-react";
+import { ChevronDown, CircleUserRound, Ellipsis, LogOut, Save, Share2, Trash2, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import RivalboardBrand from "@/components/rivalboard-brand";
 import type {
   PendingSeedSelection,
   PublicUser,
@@ -1420,12 +1421,7 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
 
       <nav className="top-nav">
         <div className="top-nav-inner">
-          <div className="brand">
-            <span className="brand-mark" aria-hidden="true">
-              R
-            </span>
-            <span>Rivalboard</span>
-          </div>
+          <RivalboardBrand />
           <div className="nav-meta">
             {!readOnly && user && (
               <>
@@ -1443,10 +1439,12 @@ export default function TournamentViewClient({ initialSnapshot, user, readOnly =
                   </summary>
                   <div className="user-menu-panel">
                     <Link href="/account" className="user-menu-item">
+                      <User className="user-menu-item-icon" aria-hidden="true" />
                       Account
                     </Link>
                     <div className="user-menu-divider" />
                     <button type="button" className="user-menu-item" onClick={signOut}>
+                      <LogOut className="user-menu-item-icon" aria-hidden="true" />
                       Logout
                     </button>
                   </div>

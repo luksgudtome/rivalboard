@@ -70,9 +70,7 @@ export default function AuthForm({ mode, googleEnabled }: AuthFormProps) {
   }
 
   return (
-    <main className="auth-wrap">
-      <div className="auth-bg auth-bg-a" aria-hidden="true" />
-      <div className="auth-bg auth-bg-b" aria-hidden="true" />
+    <main className="auth-wrap"> 
 
       <section className="auth-shell">
         <section className="auth-card">
@@ -128,7 +126,9 @@ export default function AuthForm({ mode, googleEnabled }: AuthFormProps) {
               </div>
               <a href="/api/auth/google/start" className="as-link google-btn">
                 <span className="google-mark" aria-hidden="true">
-                  G
+                  <svg viewBox="0 0 24 24" className="google-mark-icon" focusable="false">
+                    <path d="M21.35 11.1H12v2.9h5.35c-.5 2.5-2.65 4.1-5.35 4.1-3.25 0-5.9-2.65-5.9-5.9s2.65-5.9 5.9-5.9c1.45 0 2.8.5 3.85 1.5l2.2-2.2C16.4 4 14.3 3.2 12 3.2 7.15 3.2 3.2 7.15 3.2 12S7.15 20.8 12 20.8c4.5 0 8.4-3.3 8.4-8.8 0-.6-.05-1.2-.15-1.9Z" />
+                  </svg>
                 </span>
                 Continue with Google
               </a>

@@ -1,9 +1,15 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
+import rivalboardLogo from "@/content/rivalboard-logo.png";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Rivalboard",
   description: "Manage tournaments with account-based access",
+  icons: {
+    icon: rivalboardLogo.src,
+    shortcut: rivalboardLogo.src,
+    apple: rivalboardLogo.src,
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
